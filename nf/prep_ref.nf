@@ -2,18 +2,13 @@
 workflow prep_ref {
     take:
         ref_fasta
-        mode
     main:
         ref = ref_fasta ==~ '^(ftp|https?)://.+' ?
             wget(ref_fasta) :
             Channel.from(path(ref))
-        if (mode == 'mmi') {
-            mmi(ref)
-            out = mmi.out.ccs_mmi | mix(mmi.out.subread_mmi)
-        } else {
-            fai_dict(ref)
-            out = fai_dict.out
-        }
+
+        out = ref | fai_dict | bwa_index |
+            map { [it[0], it[1..7]] }
     emit:
         out
 }
@@ -43,27 +38,6 @@ process wget {
             """
 }
 
-process mmi {
-    label 'M'
-    publishDir "progress/ref", mode: params.intermediate_pub_mode
-
-    input:
-    path ref
-
-    output:
-    tuple val('CCS'), path(ccs_mmi), emit: ccs_mmi
-    tuple val('SR'), path(subread_mmi), emit: subread_mmi
-
-    script:
-    base = ref.toString().replaceAll('.fa(sta)?$', '')
-    ccs_mmi = base + '.ccs.mmi'
-    subread_mmi = base + '.subread.mmi'
-    """
-        pbmm2 index $ref $ccs_mmi --preset CCS --num-threads $task.cpus
-        pbmm2 index $ref $subread_mmi --preset SUBREAD --num-threads $task.cpus
-        """
-}
-
 process fai_dict {
     label 'S'
     publishDir "progress/ref", mode: params.intermediate_pub_mode
@@ -79,5 +53,22 @@ process fai_dict {
         """
         samtools faidx $ref
         samtools dict $ref > $dict
+        """
+}
+
+process bwa_index {
+    label 'M'
+    publishDir "progress/ref", mode: params.intermediate_pub_mode
+
+    input:
+        tuple path(ref), path(fai), path(dict)
+
+    output:
+        tuple path(ref), path(fai), path(dict), path("${ref}.sa"), path("${ref}.amb"),
+            path("${ref}.ann"), path("${ref}.pac"), path("${ref}.bwt")
+
+    script:
+        """
+        bwa index $ref
         """
 }

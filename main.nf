@@ -10,16 +10,16 @@ include { pb_lima } from './nf/pb_lima'
 //include { pb_laa } from './nf/pb_laa'
 
 subreads_bam = path(params.subreads_bam)
-subreads_pbi = path(params.subreads_bam + '.pbi')
+//subreads_pbi = path(params.subreads_bam + '.pbi')
 barcodes_fasta = path(params.barcodes_fasta)
 
 
 workflow {
     // may need to add bwa mode to prep ref for this version
-    prep_ref(params.ref_fasta, 'fai')
+    ref_files = prep_ref(params.ref_fasta)
 
     Channel.value([subreads_bam, barcodes_fasta]) |
-    pb_lima()
-
-
+        pb_lima |
+        flatMap { it.transpose() } |
+        view
 }
