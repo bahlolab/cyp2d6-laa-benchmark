@@ -3,6 +3,7 @@ channels:
     - conda-forge
     - bioconda
 dependencies:
+    - bwa=0.7.17
     - pblaa=2.4.2
     - pbbam=1.6.0
     - pbccs=6.0.0
