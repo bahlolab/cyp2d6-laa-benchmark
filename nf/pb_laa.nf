@@ -1,20 +1,26 @@
 
-
 process pb_laa {
-    cpus 16
-    mem '16 GB'
+    cpus 4
+    memory '8 GB'
     publishDir "progress/pb_laa", mode: "symlink"
 
     input:
-    tuple path(bam), path(pbi)
+    tuple val(sample), path(bam)
 
     output:
-    file("amplicon_analysis.fastq") into fastq
-    file("amplicon_analysis_summary.csv") into summary_laa
+    tuple val(sample), path("${sample}.laa.fq.gz")
 
     script:
     """
     laa $bam \\
-        --numThreads 16
+        --minLength 6000 \\
+        --maxReads 800 \\
+        --minSnr 4.5 \\
+        --noClustering \\
+        --Phasing \\
+        --ignoreEnds 21 \\
+        --trimEnds 21 \\
+        --numThreads $task.cpus
+    bgzip -c amplicon_analysis.fastq ? ${sample}.laa.fq.gz
     """
 }
