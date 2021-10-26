@@ -2,6 +2,7 @@
 process pb_mm2 {
     cpus 4
     memory '4 GB'
+    time '4 h'
     publishDir "progress/pb_mm2", mode: "symlink"
 
     input:

@@ -3,6 +3,7 @@
 process pb_lima {
     cpus 16
     memory '16 GB'
+    time '1 h'
     publishDir "progress/pb_lima", mode: "symlink"
 
     input:

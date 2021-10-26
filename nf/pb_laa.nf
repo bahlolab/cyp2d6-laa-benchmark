@@ -1,7 +1,8 @@
 
 process pb_laa {
-    cpus 4
-    memory '8 GB'
+    cpus 8
+    memory '16 GB'
+    time '1 h'
     publishDir "progress/pb_laa", mode: "symlink"
 
     input:
@@ -21,6 +22,6 @@ process pb_laa {
         --ignoreEnds 21 \\
         --trimEnds 21 \\
         --numThreads $task.cpus
-    bgzip -c amplicon_analysis.fastq ? ${sample}.laa.fq.gz
+    bgzip -c amplicon_analysis.fastq > ${sample}.laa.fq.gz
     """
 }
