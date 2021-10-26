@@ -7,8 +7,11 @@ workflow prep_ref {
             wget(ref_fasta) :
             Channel.from(path(ref))
 
-        out = ref | fai_dict | bwa_index |
-            map { [it[0], it[1..7]] }
+        out = ref |
+                combine(ref | fai_dict | map { [it] }) |
+                combine(ref | mm_index | map { [it] }) |
+                combine(ref | bwa_index| map { [it] }) |
+                map { [fa: it[0], fai: it[1], mmi: it[2], bwa: it[3]] }
     emit:
         out
 }
@@ -18,10 +21,10 @@ process wget {
     publishDir "progress/ref", mode: params.intermediate_pub_mode
 
     input:
-        val url
+        val(url)
 
     output:
-        path name
+        path(name)
 
     script:
         name_gz = new File(url).name
@@ -43,10 +46,10 @@ process fai_dict {
     publishDir "progress/ref", mode: params.intermediate_pub_mode
 
     input:
-        path ref
+        path(ref)
 
     output:
-        tuple path(ref), path("${ref}.fai"), path(dict)
+        tuple path("${ref}.fai"), path(dict)
 
     script:
         dict = ref.toString().replaceAll('.fa(sta)?$', '.dict')
@@ -56,16 +59,34 @@ process fai_dict {
         """
 }
 
+process mm_index {
+    label 'M'
+    publishDir "progress/ref", mode: params.intermediate_pub_mode
+
+    input:
+        path(ref)
+
+    output:
+        path(subread_mmi)
+
+    script:
+    base = ref.toString().replaceAll('.fa(sta)?$', '')
+    ccs_mmi = base + '.ccs.mmi'
+    subread_mmi = base + '.subread.mmi'
+    """
+    pbmm2 index $ref $subread_mmi --preset SUBREAD --num-threads $task.cpus
+    """
+}
+
 process bwa_index {
     label 'M'
     publishDir "progress/ref", mode: params.intermediate_pub_mode
 
     input:
-        tuple path(ref), path(fai), path(dict)
+        path(ref)
 
     output:
-        tuple path(ref), path(fai), path(dict), path("${ref}.sa"), path("${ref}.amb"),
-            path("${ref}.ann"), path("${ref}.pac"), path("${ref}.bwt")
+        tuple path("${ref}.sa"), path("${ref}.amb"), path("${ref}.ann"), path("${ref}.pac"), path("${ref}.bwt")
 
     script:
         """
