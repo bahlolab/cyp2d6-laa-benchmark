@@ -14,3 +14,4 @@ dependencies:
     - samtools=1.10
     - pysam=0.16.0.1
     - python-levenshtein=0.12.2
+    - ensembl-vep=104.0
