@@ -4,6 +4,7 @@ process pb_laa {
     memory '16 GB'
     time '1 h'
     publishDir "progress/pb_laa", mode: "symlink"
+    tag { sample }
 
     input:
     tuple val(sample), path(bam)

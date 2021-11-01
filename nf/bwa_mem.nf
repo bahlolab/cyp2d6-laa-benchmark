@@ -4,6 +4,7 @@ process bwa_mem {
     memory '4 GB'
     time '1 h'
     publishDir "progress/bwa_mem", mode: "symlink"
+    tag { sample }
 
     input:
         tuple val(sample), path(fastq), path(ref), path(fai), path(bwa_files)

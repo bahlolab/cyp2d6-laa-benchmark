@@ -3,7 +3,7 @@
 process split_sample_amplicons {
     cpus 2
     memory '4 GB'
-    publishDir "output/bam", mode: 'symlink'
+    publishDir "progress/bam", mode: 'symlink'
 
     input:
         path(bam)

@@ -3,7 +3,7 @@ process bcftools_merge {
     cpus 2
     memory '4 GB'
     time '1 h'
-    publishDir "progress/bcftools_merge", mode: 'symlink'
+    publishDir "progress/bcftools_merge", mode: 'copy'
 
     input:
         tuple path(vcf), path(tbi)
@@ -14,7 +14,8 @@ process bcftools_merge {
     script:
         out_vcf = "${params.run_id}_merged.vcf.gz"
         """
-        bcftools merge --missing-to-ref  ${vcf.join(' ')} -Oz -o $out_vcf
+        bcftools merge --missing-to-ref  ${vcf.join(' ')} -Ou |
+            bcftools norm -m-any --do-not-normalize -Oz -o $out_vcf
         bcftools index -t $out_vcf
         """
 }
